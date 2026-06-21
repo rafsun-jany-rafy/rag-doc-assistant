@@ -14,12 +14,12 @@ This project implements a Retrieval-Augmented Generation (RAG) pipeline using:
 <img src="images/demo.png" width="800">
 
 ## 🚀 Features
-- 📄 Upload any PDF document
-- 🔍 Semantic search using FAISS
-- 🧠 Local LLM reasoning with Llama 3.2
-- ⚡ Streaming AI responses
-- 💾 Persistent vector storage (no re-indexing after first run)
-- 🔒 Fully local (no API costs, no data leaves your machine)
+📄 Upload any PDF document
+🔍 Semantic search using FAISS
+🧠 Local LLM reasoning with Llama 3.2
+⚡ Streaming AI responses
+💾 Persistent vector storage (no re-indexing after first run)
+🔒 Fully local (no API costs, no data leaves your machine)
 
 ## 🏗️ Architecture
 ```text
@@ -60,9 +60,9 @@ Final Answer (Streaming)
 ---
 
 ## 📦 Installation
--1️⃣ Clone the Repository
+- 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/rag-doc-assistant.git
+git clone https://github.com/rafsun-jany-rafy/rag-doc-assistant.git
 cd rag-doc-assistant
 ```
 - 2️⃣ Create Virtual Environment
@@ -142,11 +142,11 @@ rag-doc-assistant/
 ---
 
 ## ⚙️ Optimization Implemented
-- ✅ Chunk overlap for better context preservation
-- ✅ Persistent FAISS index per document
-- ✅ Streaming LLM responses
-- ✅ Modular architecture
-- ✅ Multi-document support
+✅ Chunk overlap for better context preservation
+✅ Persistent FAISS index per document
+✅ Streaming LLM responses
+✅ Modular architecture
+✅ Multi-document support
 ---
 
 ## 📊 Example Use Cases
