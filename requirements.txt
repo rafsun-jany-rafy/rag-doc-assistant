@@ -4,3 +4,7 @@ faiss-cpu
 numpy
 streamlit
 python-dotenv
+fastapi
+uvicorn
+groq
+requests
