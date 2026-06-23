@@ -1,19 +1,21 @@
 import streamlit as st
 import requests
+import os
 
 st.set_page_config(page_title="Cloud Doc Assistant", page_icon="📄")
 st.title("📄 Cloud-Powered Document Assistant ")
 
 # backend URL
 # API_URL = "http://localhost:8000"
-BASE_URL = "http://127.0.0.1:8000"
+# BASE_URL = "http://127.0.0.1:8000"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
 # sidebar file upload
 with st.sidebar:
     uploaded_file = st.file_uploader("Upload PDF", type="pdf")
     if uploaded_file and st.button("Index Doxument"):
         files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
-        response = requests.post(f"{BASE_URL}/upload", files=files)
+        response = requests.post(f"{BACKEND_URL}/upload", files=files)
         st.success(response.json()["message"])
 
 # initialize and display chat history
@@ -34,7 +36,7 @@ if prompt := st.chat_input("Ask a question"):
     # get assistant response  
     with st.chat_message("assistant"):
         # calling FastAPI endpoint
-        response = requests.post(f"{BASE_URL}/ask", data={"query": prompt}, stream=True)
+        response = requests.post(f"{BACKEND_URL}/ask", data={"query": prompt}, stream=True)
         
         if response.status_code == 200:
             # stream the response from FastAPI to streamlit

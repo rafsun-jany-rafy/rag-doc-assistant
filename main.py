@@ -38,7 +38,7 @@ async def ask_question(query: str = Form(...)):
                     yield token
         
         except Exception as e:
-            ptint(f"Groq error: {e}")
+            print(f"Groq error: {e}")
             yield f"Error: {str(e)}"
         
                 
