@@ -1,83 +1,50 @@
 import streamlit as st
-import os
-from src.pipeline import ingest_document, get_relevant_context
-from src.llm import generate_answer_stream
+import requests
 
-# page config
-st.set_page_config(page_title="AI Doc Assistant", page_icon="📄")
+st.set_page_config(page_title="Cloud Doc Assistant", page_icon="📄")
+st.title("📄 Cloud-Powered Document Assistant ")
 
-st.title("📄 AI Document Assistant(Local Llama 3.2)")
-st.markdown("---")
+# backend URL
+# API_URL = "http://localhost:8000"
+BASE_URL = "http://127.0.0.1:8000"
 
-# 1. Sidebar for file upload
+# sidebar file upload
 with st.sidebar:
-    st.header("Upload Document")
-    uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
-    
-    if uploaded_file:
-        # Save the file to data/documents folder
-        file_path = os.path.join("data", "documents", uploaded_file.name)
-        
-        # Only index if it's a new file
-        if "current_file" not in st.session_state or st.session_state.current_file != uploaded_file.name:
-            with st.spinner("Indexing document..."):
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                
-                num_chunks = ingest_document(file_path)
-                st.session_state.current_file = uploaded_file.name
-                st.success(f"Indexed {num_chunks} chunks!")
-        
-# 2. Chat Interface
+    uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+    if uploaded_file and st.button("Index Doxument"):
+        files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
+        response = requests.post(f"{BASE_URL}/upload", files=files)
+        st.success(response.json()["message"])
+
+# initialize and display chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
-    
-# Display chat history
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         
-
-# 3. User input
-if prompt := st.chat_input("Ask a question about the PDF..."):
-    # Add user message to history
-    st.session_state.messages.append({'role': 'user', 'content': prompt})
+# chat interface
+if prompt := st.chat_input("Ask a question"):
+    # show user message immediately
+    st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
+    
+    # get assistant response  
+    with st.chat_message("assistant"):
+        # calling FastAPI endpoint
+        response = requests.post(f"{BASE_URL}/ask", data={"query": prompt}, stream=True)
         
-    if "current_file" in st.session_state:
-        with st.chat_message("assistant"):
-            # 1. Get context(fast)
-            relevant_chunks = get_relevant_context(prompt)
-
-            # 2. Stream the answer
-            respone_placeholder = st.empty()
-            full_response = ""
-            
-            # This logic create the typing effect
-            stream = generate_answer_stream(prompt, relevant_chunks)
-            
-            # we use st.write_stream for easiest implementation
-            full_response = st.write_stream(chunk['message']['content'] for chunk in stream)
-            
+        if response.status_code == 200:
+            # stream the response from FastAPI to streamlit
+            # st.write to handle the text flow
+            def stream_gen():
+                for chunk in response.iter_content(chunk_size=None, decode_unicode=True):
+                    yield chunk
+                    
+            full_response = st.write_stream(stream_gen())
             st.session_state.messages.append({"role": "assistant", "content": full_response})
             
-    else:
-        st.warning("Please upload a PDF first")
-        
-        
-    # """# Check if a file was uploaded first
-    # if uploaded_file:
-    #     with st.chat_message("assistant"):
-    #         with st.spinner("Analyzing document with Llama 3.2..."):
-    #             # Call pipeline
-    #             file_path = os.path.join("data", "documents", uploaded_file.name)
-    #             response = run_rag_pipeline(file_path, prompt)
-                
-    #             st.markdown(response)
-    #             # Add assistant response to history
-    #             st.session_state.messages.append({"role": "assistant", "content": response})
-    # else:
-    #     st.warning("Please upload a PDF file first using the sidebar.")"""
-       
-   
+        else:
+            st.error("Backend error.")
