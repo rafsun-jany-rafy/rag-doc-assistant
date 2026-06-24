@@ -4,6 +4,7 @@ from src.pipeline import ingest_document, get_relevant_context
 from src.llm import generate_answer_stream
 from fastapi.responses import StreamingResponse
 import os
+import shutil
 
 app = FastAPI()
 
@@ -19,6 +20,24 @@ async def upload_pdf(file: UploadFile = File(...)):
     num_chunks = ingest_document(file_path)
     return  {"message": f"File {file.filename} indexed.", "chunks": num_chunks}
 
+@app.post("/clear")
+async def clear_index():
+    # clear vector store
+    if os.path.exists("vectorstore"):
+        shutil.rmtree("vectorstore")
+    os.makedirs("vectorstore", exist_ok=True)
+    
+    # clear uploaded file
+    if os.path.exists(UPLOAD_DIR):
+        shutil.rmtree(UPLOAD_DIR)
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    
+    # clear chat history file(if exists)
+    if os.path.exists("chat_history.json"):
+        os.remove("chat_history.json")
+    
+    return {"message": "System reset successful"}
+    
 @app.post("/ask")
 async def ask_question(query: str = Form(...)):
     print(f"Question recieved: {query}")
